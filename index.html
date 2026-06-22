@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoPulse | Premium Simulated Trading Dashboard</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i data-lucide="activity" class="pulse-icon"></i>
+                </div>
+                <div class="brand-name">
+                    <span>Crypto</span><span class="text-gradient">Pulse</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="markets">
+                    <i data-lucide="trending-up"></i>
+                    <span>Markets</span>
+                </button>
+                <button class="nav-item" data-tab="portfolio">
+                    <i data-lucide="pie-chart"></i>
+                    <span>Portfolio</span>
+                </button>
+                <button class="nav-item" data-tab="ledger">
+                    <i data-lucide="history"></i>
+                    <span>Ledger</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="balance-card">
+                    <span class="balance-label">Cash Balance</span>
+                    <span class="balance-amount" id="sidebar-cash-balance">$50,000.00</span>
+                    <span class="balance-currency">USD Simulator</span>
+                </div>
+                <div class="connection-status">
+                    <span class="status-indicator online"></span>
+                    <span>Simulated Price Feed</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="welcome">
+                    <h1>Welcome Back, <span class="username">Trader</span></h1>
+                    <p class="text-muted">Simulate portfolio trades with live simulated market tickers.</p>
+                </div>
+                <div class="global-stats">
+                    <div class="stat-box">
+                        <span class="stat-label">Net Portfolio Value</span>
+                        <span class="stat-value" id="global-net-worth">$50,000.00</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">24h Return</span>
+                        <span class="stat-value positive" id="global-pnl">+$0.00 (0.00%)</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Ticker Tape Slider (Simulated Live Prices) -->
+            <div class="ticker-tape-container">
+                <div class="ticker-tape" id="ticker-tape">
+                    <!-- Dynamic Tickers Go Here -->
+                </div>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="tab-contents">
+                
+                <!-- 1. DASHBOARD VIEW -->
+                <section id="dashboard" class="tab-pane active">
+                    <div class="dashboard-grid">
+                        <!-- Chart Area -->
+                        <div class="chart-container-card card">
+                            <div class="chart-header">
+                                <div class="coin-info-header">
+                                    <img id="chart-coin-icon" src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" alt="Coin Logo" class="coin-logo">
+                                    <div>
+                                        <h2 id="chart-coin-name">Bitcoin</h2>
+                                        <span id="chart-coin-symbol" class="badge">BTC/USD</span>
+                                    </div>
+                                </div>
+                                <div class="chart-price-info">
+                                    <span class="chart-price" id="chart-coin-price">$0.00</span>
+                                    <span class="chart-change positive" id="chart-coin-change">+0.00%</span>
+                                </div>
+                                <div class="timeframe-selector">
+                                    <button class="time-btn" data-timeframe="24H">24H</button>
+                                    <button class="time-btn active" data-timeframe="7D">7D</button>
+                                    <button class="time-btn" data-timeframe="30D">30D</button>
+                                    <button class="time-btn" data-timeframe="1Y">1Y</button>
+                                </div>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <canvas id="mainPriceChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Trade Panel -->
+                        <div class="trade-card card">
+                            <div class="card-header">
+                                <h3>Quick Execution</h3>
+                                <p class="text-muted">Instant order filling</p>
+                            </div>
+                            <div class="trade-tabs">
+                                <button class="trade-tab-btn active" id="trade-buy-tab" onclick="setTradeAction('buy')">Buy</button>
+                                <button class="trade-tab-btn" id="trade-sell-tab" onclick="setTradeAction('sell')">Sell</button>
+                            </div>
+                            <form id="trade-form" onsubmit="executeTrade(event)">
+                                <div class="form-group">
+                                    <label for="trade-coin-select">Select Asset</label>
+                                    <select id="trade-coin-select" onchange="onTradeCoinChange()">
+                                        <!-- Dynamic options -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label id="amount-label" for="trade-amount">Amount (USD)</label>
+                                    <div class="input-wrapper">
+                                        <input type="number" id="trade-amount" placeholder="0.00" min="0.01" step="any" required oninput="calculateEstimates()">
+                                        <span class="input-suffix" id="trade-currency-suffix">USD</span>
+                                    </div>
+                                    <div class="percentage-buttons">
+                                        <button type="button" class="pct-btn" onclick="setTradePercentage(25)">25%</button>
+                                        <button type="button" class="pct-btn" onclick="setTradePercentage(50)">50%</button>
+                                        <button type="button" class="pct-btn" onclick="setTradePercentage(75)">75%</button>
+                                        <button type="button" class="pct-btn" onclick="setTradePercentage(100)">MAX</button>
+                                    </div>
+                                </div>
+                                <div class="trade-estimates">
+                                    <div class="estimate-row">
+                                        <span>Price Per Coin</span>
+                                        <span id="est-coin-price">$0.00</span>
+                                    </div>
+                                    <div class="estimate-row">
+                                        <span>Estimated Asset Received</span>
+                                        <span id="est-quantity">0.00000000</span>
+                                    </div>
+                                    <div class="estimate-row">
+                                        <span>Trading Fee (0.1%)</span>
+                                        <span id="est-fee">$0.00</span>
+                                    </div>
+                                    <div class="estimate-row total">
+                                        <span id="est-total-label">Total Outlay</span>
+                                        <span id="est-total">$0.00</span>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block" id="execute-trade-btn">Buy Bitcoin</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Mini Market List & Watchlist -->
+                    <div class="dashboard-secondary-grid">
+                        <div class="card mini-list-card">
+                            <div class="card-header justify-between">
+                                <h3>Market Tickers</h3>
+                                <button class="btn btn-link" onclick="switchTab('markets')">See All</button>
+                            </div>
+                            <div class="mini-coin-list" id="dashboard-mini-list">
+                                <!-- Dynamic List -->
+                            </div>
+                        </div>
+
+                        <div class="card watchlist-card">
+                            <div class="card-header">
+                                <h3>Your Watchlist</h3>
+                            </div>
+                            <div class="mini-coin-list" id="dashboard-watchlist-list">
+                                <!-- Dynamic List -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. MARKETS VIEW -->
+                <section id="markets" class="tab-pane">
+                    <div class="table-actions card">
+                        <div class="search-bar">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="market-search" placeholder="Search tokens by name or symbol..." oninput="renderMarketsTable()">
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-outline active" id="market-filter-all" onclick="filterMarkets('all')">All Markets</button>
+                            <button class="btn btn-outline" id="market-filter-watchlist" onclick="filterMarkets('watchlist')"><i data-lucide="star" style="width:14px; height:14px; margin-right:4px;"></i>Watchlist</button>
+                        </div>
+                    </div>
+
+                    <div class="table-container card">
+                        <table class="crypto-table" id="markets-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Asset</th>
+                                    <th>Price</th>
+                                    <th class="align-right">24h Change</th>
+                                    <th class="align-right">24h High / Low</th>
+                                    <th>Trend (7d)</th>
+                                    <th class="align-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="markets-table-body">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 3. PORTFOLIO VIEW -->
+                <section id="portfolio" class="tab-pane">
+                    <div class="portfolio-stats-grid">
+                        <div class="stat-card card">
+                            <div class="stat-card-icon positive">
+                                <i data-lucide="wallet"></i>
+                            </div>
+                            <div>
+                                <span class="card-label">Total Portfolio Asset Value</span>
+                                <h3 id="portfolio-asset-value">$0.00</h3>
+                                <p class="card-sub-info text-muted">Excludes simulator cash</p>
+                            </div>
+                        </div>
+                        <div class="stat-card card">
+                            <div class="stat-card-icon">
+                                <i data-lucide="dollar-sign"></i>
+                            </div>
+                            <div>
+                                <span class="card-label">Total Cash Deposited</span>
+                                <h3 id="portfolio-invested">$50,000.00</h3>
+                                <p class="card-sub-info text-muted">Original simulation principal</p>
+                            </div>
+                        </div>
+                        <div class="stat-card card">
+                            <div class="stat-card-icon" id="portfolio-pnl-icon">
+                                <i data-lucide="arrow-up-right"></i>
+                            </div>
+                            <div>
+                                <span class="card-label">Net Profit / Loss</span>
+                                <h3 id="portfolio-net-pnl">$0.00</h3>
+                                <p class="card-sub-info" id="portfolio-pnl-percentage">0.00% Overall return</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-details-grid">
+                        <!-- Holdings Table -->
+                        <div class="card holdings-card">
+                            <div class="card-header">
+                                <h3>Current Holdings</h3>
+                            </div>
+                            <div class="table-container no-border">
+                                <table class="crypto-table" id="holdings-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Asset</th>
+                                            <th class="align-right">Balance</th>
+                                            <th class="align-right">Avg Cost Basis</th>
+                                            <th class="align-right">Market Price</th>
+                                            <th class="align-right">Current Value</th>
+                                            <th class="align-right">Total return</th>
+                                            <th class="align-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="holdings-table-body">
+                                        <!-- Dynamic Holdings -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Asset Allocation Chart -->
+                        <div class="card allocation-card">
+                            <div class="card-header">
+                                <h3>Asset Allocation</h3>
+                            </div>
+                            <div class="doughnut-container">
+                                <canvas id="allocationChart"></canvas>
+                                <div id="no-assets-message" class="no-assets-notice">
+                                    <i data-lucide="pie-chart" class="large-icon"></i>
+                                    <p>No active positions. Purchase crypto via the Dashboard or Markets tab to view allocation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. LEDGER VIEW -->
+                <section id="ledger" class="tab-pane">
+                    <div class="ledger-header card justify-between align-center">
+                        <div>
+                            <h2>Transaction Ledger</h2>
+                            <p class="text-muted">Chronological history of your simulated trades</p>
+                        </div>
+                        <button class="btn btn-danger" onclick="confirmResetPortfolio()">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                            Reset Simulation
+                        </button>
+                    </div>
+
+                    <div class="table-container card">
+                        <table class="crypto-table" id="ledger-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Transaction Type</th>
+                                    <th>Asset</th>
+                                    <th class="align-right">Price</th>
+                                    <th class="align-right">Amount</th>
+                                    <th class="align-right">Total Outlay/Inflow</th>
+                                    <th class="align-right">Fee</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledger-table-body">
+                                <!-- Dynamic transactions -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Generic Buy/Sell Trade Modal -->
+    <div class="modal-overlay" id="trade-modal">
+        <div class="modal card">
+            <div class="modal-header">
+                <h3 id="modal-title">Trade Asset</h3>
+                <button class="close-btn" onclick="closeTradeModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-coin-summary">
+                    <img id="modal-coin-logo" src="" alt="Coin Logo">
+                    <div>
+                        <h4 id="modal-coin-name">Bitcoin</h4>
+                        <span id="modal-coin-price" class="text-gradient font-bold">$0.00</span>
+                    </div>
+                    <div class="modal-coin-balance-status align-right">
+                        <span class="text-muted">Available Cash:</span>
+                        <span id="modal-cash-balance" class="font-semibold">$50,000.00</span>
+                        <br>
+                        <span class="text-muted">Available Balance:</span>
+                        <span id="modal-coin-balance" class="font-semibold">0.00 BTC</span>
+                    </div>
+                </div>
+
+                <div class="trade-tabs">
+                    <button class="trade-tab-btn active" id="modal-buy-tab" onclick="setModalTradeAction('buy')">Buy</button>
+                    <button class="trade-tab-btn" id="modal-sell-tab" onclick="setModalTradeAction('sell')">Sell</button>
+                </div>
+
+                <form id="modal-trade-form" onsubmit="executeModalTrade(event)">
+                    <div class="form-group">
+                        <label id="modal-amount-label" for="modal-trade-amount">Amount (USD)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="modal-trade-amount" placeholder="0.00" min="0.01" step="any" required oninput="calculateModalEstimates()">
+                            <span class="input-suffix" id="modal-currency-suffix">USD</span>
+                        </div>
+                        <div class="percentage-buttons">
+                            <button type="button" class="pct-btn" onclick="setModalTradePercentage(25)">25%</button>
+                            <button type="button" class="pct-btn" onclick="setModalTradePercentage(50)">50%</button>
+                            <button type="button" class="pct-btn" onclick="setModalTradePercentage(75)">75%</button>
+                            <button type="button" class="pct-btn" onclick="setModalTradePercentage(100)">MAX</button>
+                        </div>
+                    </div>
+                    
+                    <div class="trade-estimates">
+                        <div class="estimate-row">
+                            <span>Estimated Asset Received/Sold</span>
+                            <span id="modal-est-quantity" class="font-bold">0.00000000</span>
+                        </div>
+                        <div class="estimate-row">
+                            <span>Trading Fee (0.1%)</span>
+                            <span id="modal-est-fee">$0.00</span>
+                        </div>
+                        <div class="estimate-row total">
+                            <span id="modal-est-total-label">Total Outlay</span>
+                            <span id="modal-est-total">$0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block" id="modal-execute-btn">Execute Trade</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container (Toast alerts) -->
+    <div class="notifications-container" id="notifications-container"></div>
+
+    <!-- Application Script Files -->
+    <script src="app.js"></script>
+    <script src="charts.js"></script>
+</body>
+</html>
